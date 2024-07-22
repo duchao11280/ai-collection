@@ -1,0 +1,11 @@
+site_name: Haro's Blogs
+site_author: https://www.facebook.com/duchao3003/
+theme:
+  name: material
+
+docs_dir: ./docs
+
+plugins:
+  - search
+
+use_directory_urls: false
