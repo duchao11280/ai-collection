@@ -1,0 +1,23 @@
+{
+
+	"weights": "./yolov8s.pt",
+    "source": "https://ultralytics.com/images/bus.jpg",
+    "data": "D://Study//repos//ai-collection//code//auto_label_yolo//dataset//data.yaml",
+    
+    "imgsz":640,
+    "batch_size":2,
+
+    "epochs":100,
+    "cos_lr":true,
+
+    "version":"s",
+    "save": true,
+    "device":0,
+
+    "lr0":0.01,
+    "lrf":0.01,
+    "nms":true,
+    "task": "detect",
+    "type": "pytorch"
+
+}

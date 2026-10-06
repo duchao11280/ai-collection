@@ -1,0 +1,1114 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tín hiệu PLC ECOS_BASIC vs ECOS_AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+:root {
+  color-scheme: light dark;
+  --ground:      #EFF1EE;
+  --surface:     #FBFCFA;
+  --surface-alt: #E6E9E4;
+  --ink:         #16191C;
+  --ink-soft:    #4C5459;
+  --ink-faint:   #767E82;
+  --rule:        #D3D7CF;
+  --rule-soft:   #E1E4DD;
+  --ai:          #9A5330;
+  --ai-wash:     #F3E7E0;
+  --basic:       #1C6B66;
+  --basic-wash:  #DEEAE7;
+  --signal:      #9C7508;
+  --ok:          #2E6B39;
+  --ng:          #A33529;
+
+  --shell: 1080px;
+  --prose: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:      #14171A;
+    --surface:     #1A1E21;
+    --surface-alt: #23282B;
+    --ink:         #E7EAE5;
+    --ink-soft:    #A9B1B3;
+    --ink-faint:   #7D8689;
+    --rule:        #2F3539;
+    --rule-soft:   #262B2F;
+    --ai:          #D9906A;
+    --ai-wash:     #2B2019;
+    --basic:       #58B6AF;
+    --basic-wash:  #16292A;
+    --signal:      #D5A93F;
+    --ok:          #6FB97C;
+    --ng:          #E08476;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground:      #14171A;
+  --surface:     #1A1E21;
+  --surface-alt: #23282B;
+  --ink:         #E7EAE5;
+  --ink-soft:    #A9B1B3;
+  --ink-faint:   #7D8689;
+  --rule:        #2F3539;
+  --rule-soft:   #262B2F;
+  --ai:          #D9906A;
+  --ai-wash:     #2B2019;
+  --basic:       #58B6AF;
+  --basic-wash:  #16292A;
+  --signal:      #D5A93F;
+  --ok:          #6FB97C;
+  --ng:          #E08476;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding-inline: 22px;
+  padding-block: 0 96px;
+}
+
+/* ---------- typography ---------- */
+
+h1, h2, h3 {
+  font-family: Archivo, "Archivo Narrow", "Helvetica Neue", sans-serif;
+  text-wrap: balance;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 5.2vw, 3.15rem);
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  line-height: 1.06;
+}
+
+h2 {
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+h3 {
+  font-size: 1.06rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+p { margin: 0; max-width: var(--prose); }
+
+.eyebrow {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+code, .mono {
+  font-family: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
+  font-size: 0.875em;
+}
+
+code {
+  background: var(--surface-alt);
+  padding: 0.08em 0.34em;
+  border-radius: 2px;
+  color: var(--ink);
+}
+
+/* ---------- masthead ---------- */
+
+header.masthead {
+  border-bottom: 2px solid var(--ink);
+  padding-block: 52px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.masthead .kicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: baseline;
+}
+
+.standfirst {
+  font-size: 1.09rem;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+
+.sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.73rem;
+  color: var(--ink-faint);
+  padding-top: 4px;
+  border-top: 1px solid var(--rule-soft);
+}
+.sources span { white-space: nowrap; }
+.sources b { font-weight: 500; color: var(--ink-soft); }
+
+/* ---------- sections ---------- */
+
+section {
+  padding-top: 62px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.sec-head {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  border-top: 1px solid var(--rule);
+  padding-top: 16px;
+}
+
+/* ---------- verdict strip ---------- */
+
+.verdict {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+
+.verdict div {
+  background: var(--surface);
+  padding: 17px 18px 19px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.verdict dt {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+.verdict dd {
+  margin: 0;
+  font-family: Archivo, sans-serif;
+  font-size: 1.32rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+  font-variant-numeric: tabular-nums;
+}
+
+.verdict p { font-size: 0.83rem; color: var(--ink-soft); line-height: 1.5; }
+
+/* ---------- two-lane comparison ---------- */
+
+.duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px;
+}
+
+.lane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 3px solid var(--rule);
+  padding-top: 13px;
+  min-width: 0;
+}
+
+.lane--ai    { border-top-color: var(--ai); }
+.lane--basic { border-top-color: var(--basic); }
+
+.lane-name {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.lane--ai    .lane-name { color: var(--ai); }
+.lane--basic .lane-name { color: var(--basic); }
+
+.lane p { font-size: 0.93rem; color: var(--ink-soft); max-width: none; }
+.lane h3 { margin-bottom: -4px; }
+
+.lane ul {
+  margin: 0;
+  padding-left: 1.05em;
+  font-size: 0.93rem;
+  color: var(--ink-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.lane li::marker { color: var(--ink-faint); }
+.lane li b { color: var(--ink); font-weight: 600; }
+
+/* ---------- code ---------- */
+
+pre {
+  margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--rule-soft);
+  border-left: 3px solid var(--rule);
+  padding: 13px 15px;
+  overflow-x: auto;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  line-height: 1.62;
+  color: var(--ink-soft);
+  tab-size: 2;
+}
+.lane--ai    pre { border-left-color: var(--ai); }
+.lane--basic pre { border-left-color: var(--basic); }
+pre b { color: var(--ink); font-weight: 600; }
+pre i { color: var(--ink-faint); font-style: normal; }
+
+/* ---------- tables ---------- */
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 620px;
+  background: var(--surface);
+  font-size: 0.89rem;
+}
+
+thead th {
+  text-align: left;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 11px 15px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: bottom;
+}
+
+thead th.col-ai    { color: var(--ai); }
+thead th.col-basic { color: var(--basic); }
+
+tbody td, tbody th {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+  text-align: left;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+
+tbody th {
+  color: var(--ink);
+  font-weight: 500;
+  width: 27%;
+}
+
+td.num, .tnum { font-variant-numeric: tabular-nums; }
+
+td.col-basic { background: var(--basic-wash); color: var(--ink); }
+td.col-ai    { background: var(--ai-wash); color: var(--ink); }
+
+/* ---------- figure ---------- */
+
+figure { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+
+.fig-frame {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 20px 18px;
+  overflow-x: auto;
+}
+
+figure svg { display: block; width: 100%; min-width: 640px; height: auto; color: var(--ink-soft); }
+
+figcaption { font-size: 0.85rem; color: var(--ink-faint); max-width: var(--prose); }
+
+.dg-box     { fill: var(--surface); stroke: var(--rule); stroke-width: 1.4; }
+.dg-box-ai    { stroke: var(--ai); }
+.dg-box-basic { stroke: var(--basic); }
+.dg-t       { font-family: "IBM Plex Sans", sans-serif; font-size: 12px; font-weight: 600; fill: var(--ink); }
+.dg-s       { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; fill: var(--ink-faint); }
+.dg-arw     { stroke: var(--ink-faint); stroke-width: 1.3; fill: none; }
+.dg-lbl     { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; fill: var(--ink-faint); }
+.dg-eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.11em; }
+.dg-eyebrow-ai    { fill: var(--ai); }
+.dg-eyebrow-basic { fill: var(--basic); }
+.dg-ret     { font-family: "IBM Plex Sans", sans-serif; font-size: 10.5px; fill: var(--ink-soft); }
+.dg-div     { stroke: var(--rule); stroke-width: 1; }
+
+/* ---------- scenario cards ---------- */
+
+.scen {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+}
+
+.scen > article {
+  display: grid;
+  grid-template-columns: 200px 1fr 1fr;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.scen > article:last-child { border-bottom: 0; }
+
+.scen .q {
+  padding: 16px 18px;
+  border-right: 1px solid var(--rule-soft);
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.scen .a {
+  padding: 16px 18px;
+  font-size: 0.89rem;
+  color: var(--ink-soft);
+  border-right: 1px solid var(--rule-soft);
+}
+.scen .a:last-child { border-right: 0; }
+
+.tag {
+  display: inline-block;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.63rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.tag--ai    { color: var(--ai); }
+.tag--basic { color: var(--basic); }
+
+/* ---------- risk list ---------- */
+
+.risks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px 30px;
+}
+
+.risk {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 14px;
+  border-left: 2px solid var(--signal);
+}
+
+.risk h3 { font-size: 0.97rem; }
+.risk p { font-size: 0.89rem; color: var(--ink-soft); max-width: none; }
+.risk .where {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.71rem;
+  color: var(--ink-faint);
+}
+
+footer {
+  margin-top: 62px;
+  border-top: 1px solid var(--rule);
+  padding-top: 18px;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+}
+
+a { color: inherit; }
+a:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .duo { grid-template-columns: 1fr; gap: 34px; }
+  .scen > article { grid-template-columns: 1fr; }
+  .scen .q { border-right: 0; border-bottom: 1px solid var(--rule-soft); padding-bottom: 12px; }
+  .scen .a { border-right: 0; }
+  .scen .a + .a { border-top: 1px solid var(--rule-soft); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+
+</head>
+<body>
+<div class="shell">
+
+<header class="masthead">
+  <div class="kicker">
+    <p class="eyebrow">So sánh kỹ thuật &middot; Lớp tín hiệu PLC</p>
+  </div>
+  <h1>Từ callback bám nghiệp vụ<br>đến vòng lặp trigger có khoá</h1>
+  <p class="standfirst">
+    ECOS_BASIC viết lại toàn bộ lớp PLC của ECOS_AI: tách giao thức khỏi nghiệp vụ,
+    gộp lệnh đọc/ghi SLMP theo dải, và thay cơ chế chống trùng bằng khoá thật cho
+    từng capture. Bài này đối chiếu hai bản trên đúng phần tín hiệu PLC và bài toán
+    nhiều trigger bắn cùng lúc.
+  </p>
+  <div class="sources">
+    <span><b>ECOS_AI</b> src/detector/server</span>
+    <span><b>ECOS_BASIC</b> server</span>
+    <span>Mitsubishi SLMP 3E &middot; pymcprotocol</span>
+  </div>
+</header>
+
+<!-- ============================ TÓM TẮT ============================ -->
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Tóm tắt</p>
+    <h2>Bốn thay đổi quyết định</h2>
+  </div>
+
+  <dl class="verdict">
+    <div>
+      <dt>Quyền sở hữu vòng lặp</dt>
+      <dd>Callback &rarr; BaseApp</dd>
+      <p>ECOS_AI đăng ký callback theo tag vào <code>PLCService</code>. ECOS_BASIC chuyển vòng lặp sang <code>BaseApp.run()</code>, còn <code>PLCService</code> chỉ giữ kết nối.</p>
+    </div>
+    <div>
+      <dt>Số vòng SLMP mỗi lượt poll</dt>
+      <dd class="tnum">10 &rarr; 1&ndash;2</dd>
+      <p>Đọc từng tag một được thay bằng đọc gộp theo dải địa chỉ liền kề, kể cả khi có khoảng trống nhỏ.</p>
+    </div>
+    <div>
+      <dt>Chống trigger trùng</dt>
+      <dd>Cache &rarr; Khoá</dd>
+      <p>Từ so sánh giá trị cũ/mới trong dict toàn cục sang <code>threading.Lock</code> riêng cho mỗi capture, thử lấy không chặn.</p>
+    </div>
+    <div>
+      <dt>Song song thật</dt>
+      <dd>Không &rarr; Có</dd>
+      <p>ECOS_AI chạy nhận dạng đồng bộ ngay trong event loop. ECOS_BASIC dispatch vào thread pool, chặn CPU bằng semaphore và process pool.</p>
+    </div>
+  </dl>
+</section>
+
+<!-- ============================ KIẾN TRÚC ============================ -->
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Kiến trúc</p>
+    <h2>Ai sở hữu vòng lặp tín hiệu</h2>
+  </div>
+
+  <div class="duo">
+    <div class="lane lane--ai">
+      <p class="lane-name">ECOS_AI</p>
+      <h3>Một file điều khiển gắn chặt nghiệp vụ</h3>
+      <p>
+        <code>PLCService</code> tự mở một thread daemon chạy <code>asyncio.run(self.run())</code>
+        ngay trong hàm khởi tạo. Vòng lặp duyệt qua dict callback và gọi từng hàm xử lý.
+        Toàn bộ hàm xử lý nằm trong <code>plc_controller.py</code> &mdash; 1.221 dòng trộn
+        lẫn đọc thanh ghi, so khớp QR với chữ trên khay, ghi log lô và xuất Excel.
+      </p>
+      <ul>
+        <li><b>Tên tag cứng trong mã.</b> <code>plc_constants.py</code> liệt kê sẵn <code>TRIGGER_CAPTURE_FIRST_QR</code>, <code>TRIGGER_CAPTURE_TRAY</code>&hellip; Thêm một camera là phải sửa mã nguồn.</li>
+        <li><b>Một giao thức duy nhất.</b> Chỉ Mitsubishi 3E.</li>
+        <li><b>Trạng thái toàn cục.</b> <code>_PLC_CACHE</code>, <code>_OBJECCT_TRACKING</code>, <code>_PENDING_DETECT_INFO</code> là dict cấp module.</li>
+      </ul>
+    </div>
+
+    <div class="lane lane--basic">
+      <p class="lane-name">ECOS_BASIC</p>
+      <h3>Lớp trừu tượng cộng adapter giao thức</h3>
+      <p>
+        <code>BaseApp</code> sở hữu toàn bộ vòng lặp poll, pipeline chụp ảnh và điều phối
+        nhận dạng. Lớp con chỉ cung cấp bốn nguyên thuỷ vào/ra: kết nối, đọc tag,
+        ghi tag, kết nối lại. <code>PLCApp</code> là bản hiện thực SLMP; cùng khuôn đó
+        còn có EtherNet/IP, Modbus (client và server) và robot Fairino.
+      </p>
+      <ul>
+        <li><b>Địa chỉ nằm trong cấu hình dự án.</b> Mỗi capture khai <code>trigger_address</code>, <code>status_address</code>, <code>result_address</code> và <code>extra_info_address</code> trong YAML.</li>
+        <li><b>Phân biệt thiết bị bit và word.</b> Tiền tố <code>M/X/Y</code> đi đường bit, <code>D/W/R</code> đi đường word.</li>
+        <li><b>Trạng thái có chủ sở hữu.</b> <code>FeatureTracker</code>, <code>CycleTracker</code>, <code>DetectionCache</code> đều có khoá riêng.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Vai trò</th>
+          <th scope="col" class="col-ai">ECOS_AI</th>
+          <th scope="col" class="col-basic">ECOS_BASIC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Kết nối và truyền nhận</th>
+          <td>services/plc/plc_service.py &mdash; 331 dòng, kiêm luôn vòng lặp poll</td>
+          <td>services/plc/plc_service.py &mdash; 268 dòng, chỉ kết nối và đọc/ghi cơ bản</td>
+        </tr>
+        <tr>
+          <th scope="row">Vòng lặp trigger</th>
+          <td>Nằm trong <code>PLCService.run()</code>, gọi callback theo tag</td>
+          <td>Nằm trong <code>BaseApp.run()</code>, 1.334 dòng, không phụ thuộc giao thức</td>
+        </tr>
+        <tr>
+          <th scope="row">Adapter giao thức</th>
+          <td>Không có &mdash; chỉ SLMP</td>
+          <td>plc_app · ethernet_ip_app · modbus_app · modbus_server_app · fairino_app</td>
+        </tr>
+        <tr>
+          <th scope="row">Nghiệp vụ kiểm tra</th>
+          <td>Viết thẳng trong plc_controller.py</td>
+          <td>Tách sang services/aggregation và các model nhận dạng</td>
+        </tr>
+        <tr>
+          <th scope="row">Khai báo địa chỉ</th>
+          <td>services/plc/plc_config.yaml, khoá là tên tag cố định</td>
+          <td>config/projects/&lt;dự án&gt;.yaml, địa chỉ gắn theo từng capture</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================ CẤU HÌNH ============================ -->
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Khai báo tín hiệu</p>
+    <h2>Bản đồ thanh ghi chuyển từ mã sang cấu hình</h2>
+  </div>
+
+  <p>
+    Đây là thay đổi có ảnh hưởng xa nhất. ECOS_AI mô tả PLC bằng một danh sách tag
+    phẳng mà mã nguồn phải biết tên; ECOS_BASIC mô tả PLC bằng cây sản phẩm &rarr;
+    feature &rarr; capture, trong đó mỗi capture tự mang đủ bộ thanh ghi của nó.
+  </p>
+
+  <div class="duo">
+    <div class="lane lane--ai">
+      <p class="lane-name">ECOS_AI &middot; plc_config.yaml</p>
+<pre><i># tên khoá phải trùng hằng số trong plc_constants.py</i>
+<b>Tag2_Trigger_Capture_First_QR</b>:
+  device: D1110
+  is_enable: true
+  size: 1
+<b>Tag2_Trigger_Capture_Tray</b>:
+  device: D1130
+  is_enable: true
+  size: 1
+<b>Tag1_Detect_Result</b>:
+  device: D1040     <i># một thanh ghi kết quả chung</i>
+  size: 1
+
+host: 192.168.0.2
+port: 5007
+polling_interval: 0.2</pre>
+      <p>
+        Bốn trigger dùng thanh ghi word <code>D1110</code>, <code>D1120</code>,
+        <code>D1130</code>, <code>D1140</code>. Kết quả cuối cùng của cả chu kỳ
+        dồn về đúng một thanh ghi <code>D1040</code>.
+      </p>
+    </div>
+
+    <div class="lane lane--basic">
+      <p class="lane-name">ECOS_BASIC &middot; config/projects/nitto_white_core.yaml</p>
+<pre>trigger_mode: multi
+products:
+- features:
+  - feature_id: khay_input_fcb
+    captures:
+    - capture_id: C1
+      camera_id: DA9830347
+      detection_model: white_fpc_input_check
+      <b>trigger_address: M1300</b>   <i># bit</i>
+      <b>status_address:  M1400</b>
+      <b>result_address:  D1016</b>
+      extra_info_address:
+        x: D1010
+        y: D1012
+        r: D1014
+      detection_args_by_address:
+        pattern: { address: D1106, word_length: 1 }</pre>
+      <p>
+        Mỗi capture có trigger, status, result riêng, cộng thêm các thanh ghi
+        phụ để trả toạ độ lệch. Dự án này khai 20+ capture trên dải
+        <code>M1300</code>&ndash;<code>M1356</code>.
+      </p>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Tín hiệu</th>
+          <th scope="col" class="col-ai">ECOS_AI</th>
+          <th scope="col" class="col-basic">ECOS_BASIC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Trigger chụp</th>
+          <td class="mono">D1110 / D1120 / D1130 / D1140 (word)</td>
+          <td class="mono">M1300 &hellip; M1356, một bit cho mỗi capture</td>
+        </tr>
+        <tr>
+          <th scope="row">Báo chụp xong</th>
+          <td class="mono">D1010 / D1020 / D1030 / D1035</td>
+          <td class="mono">status_address riêng, ví dụ M1400 &hellip; M1452</td>
+        </tr>
+        <tr>
+          <th scope="row">Kết quả OK/NG</th>
+          <td class="mono">D1040 &mdash; một thanh ghi cho cả chu kỳ</td>
+          <td class="mono">result_address riêng, ví dụ D1016, D1024, D1040</td>
+        </tr>
+        <tr>
+          <th scope="row">Dữ liệu đo bổ sung</th>
+          <td class="mono">Góc xoay QR: D1300, D1302 (dword)</td>
+          <td class="mono">extra_info_address tuỳ ý: x, y, r, ng_type &hellip; (dword)</td>
+        </tr>
+        <tr>
+          <th scope="row">Tham số PLC đẩy xuống</th>
+          <td class="mono">D6505, D6513, D6520 &mdash; hiệu chỉnh vị trí, dung sai</td>
+          <td class="mono">detection_args_by_address &mdash; đọc kèm ngay trong lượt poll</td>
+        </tr>
+        <tr>
+          <th scope="row">Reset</th>
+          <td class="mono">Gián tiếp qua D1060 khi đổi model</td>
+          <td class="mono">reset_product_address và reset_inspection_address</td>
+        </tr>
+        <tr>
+          <th scope="row">PLC còn sống</th>
+          <td class="mono">D1050, chỉ ghi log khi đổi</td>
+          <td class="mono">plc_status_address, chặn toàn bộ vòng lặp nếu khác 1</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================ VÒNG LẶP ĐỌC ============================ -->
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Vòng lặp đọc</p>
+    <h2>Độ trễ nhận trigger</h2>
+  </div>
+
+  <p>
+    ECOS_AI đọc từng tag một và chèn <code>await asyncio.sleep(0.02)</code> sau mỗi lần
+    đọc, rồi nghỉ tiếp đúng <code>polling_interval</code> ở cuối vòng. Với 10 callback
+    đang đăng ký, một vòng quét đầy đủ tốn khoảng 0,2 giây tiền nghỉ cộng 0,2 giây
+    chu kỳ, chưa kể thời gian đi về trên mạng.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Thông số</th>
+          <th scope="col" class="col-ai">ECOS_AI</th>
+          <th scope="col" class="col-basic">ECOS_BASIC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Chu kỳ poll khai báo</th>
+          <td class="num">0,20 s</td>
+          <td class="num col-basic">0,01 s ở chế độ multi &middot; 0 s ở chế độ single</td>
+        </tr>
+        <tr>
+          <th scope="row">Nghỉ chèn sau mỗi lần đọc</th>
+          <td class="num">0,02 s</td>
+          <td class="num col-basic">không có</td>
+        </tr>
+        <tr>
+          <th scope="row">Số vòng SLMP mỗi lượt quét</th>
+          <td class="num">10, mỗi tag một lệnh</td>
+          <td class="num col-basic">1 lệnh cho cả dải trigger, 1 cho nhóm housekeeping</td>
+        </tr>
+        <tr>
+          <th scope="row">Gộp địa chỉ không liền kề</th>
+          <td>không</td>
+          <td class="col-basic">bắc cầu qua khoảng trống tối đa 16 thanh ghi</td>
+        </tr>
+        <tr>
+          <th scope="row">TCP_NODELAY trên socket PLC</th>
+          <td>không đặt</td>
+          <td class="col-basic">bật khi kết nối</td>
+        </tr>
+        <tr>
+          <th scope="row">Độ trễ nhận trigger ước tính</th>
+          <td class="num">≈ 0,4 s cho một vòng quét đủ</td>
+          <td class="num col-basic">≈ 1 vòng SLMP cộng 0,01 s</td>
+        </tr>
+        <tr>
+          <th scope="row">Kiểm chứng sau khi ghi</th>
+          <td class="num col-ai">đọc lại và so khớp, tối đa 10 lần thử</td>
+          <td class="num">ghi một lần, chỉ kết nối lại khi có ngoại lệ</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Hàng cuối là điểm ECOS_AI làm chặt hơn: <code>write_data</code> đọc ngược thanh ghi
+    vừa ghi và so sánh, ném lỗi nếu lệch. <code>PLCApp._write_tag</code> của ECOS_BASIC
+    gọi thẳng <code>batchwrite</code> và tin vào kết quả. Nếu đường truyền tới PLC không
+    ổn định, đây là thứ đáng cân nhắc đưa ngược lại.
+  </p>
+</section>
+
+<!-- ============================ SƠ ĐỒ ============================ -->
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Đường đi của một trigger</p>
+    <h2>Hai pipeline đặt cạnh nhau</h2>
+  </div>
+
+  <figure>
+    <div class="fig-frame">
+      <svg viewBox="0 0 940 372" role="img"
+           aria-label="Sơ đồ so sánh: ECOS_AI đưa trigger vòng qua trình duyệt rồi nhận dạng chặn event loop và ghi một thanh ghi kết quả chung; ECOS_BASIC khoá từng capture, ACK gộp, dispatch vào thread pool và ghi kết quả riêng cho từng capture qua hàng đợi ghi.">
+        <defs>
+          <marker id="arw" viewBox="0 0 8 8" refX="7" refY="4"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0,1 8,4 0,7" fill="currentColor"></polygon>
+          </marker>
+        </defs>
+
+        <!-- ================= LANE A : ECOS_AI ================= -->
+        <text class="dg-eyebrow dg-eyebrow-ai" x="33" y="20">ECOS_AI</text>
+
+        <rect class="dg-box dg-box-ai" x="33"  y="36" width="130" height="66" rx="2"></rect>
+        <text class="dg-t" x="98"  y="63" text-anchor="middle">PLC</text>
+        <text class="dg-s" x="98"  y="80" text-anchor="middle">D1110 · D1130</text>
+
+        <rect class="dg-box dg-box-ai" x="219" y="36" width="130" height="66" rx="2"></rect>
+        <text class="dg-t" x="284" y="59" text-anchor="middle">Thread poll</text>
+        <text class="dg-t" x="284" y="74" text-anchor="middle">asyncio riêng</text>
+        <text class="dg-s" x="284" y="90" text-anchor="middle">1 tag mỗi 0,02 s</text>
+
+        <rect class="dg-box dg-box-ai" x="405" y="36" width="130" height="66" rx="2"></rect>
+        <text class="dg-t" x="470" y="59" text-anchor="middle">Callback</text>
+        <text class="dg-t" x="470" y="74" text-anchor="middle">+ chốt chặn</text>
+        <text class="dg-s" x="470" y="90" text-anchor="middle">_has_changed</text>
+
+        <rect class="dg-box dg-box-ai" x="591" y="36" width="130" height="66" rx="2"></rect>
+        <text class="dg-t" x="656" y="59" text-anchor="middle">Trình duyệt</text>
+        <text class="dg-t" x="656" y="74" text-anchor="middle">Socket.IO</text>
+        <text class="dg-s" x="656" y="90" text-anchor="middle">vòng qua UI</text>
+
+        <rect class="dg-box dg-box-ai" x="777" y="36" width="130" height="66" rx="2"></rect>
+        <text class="dg-t" x="842" y="59" text-anchor="middle">Chụp · nhận dạng</text>
+        <text class="dg-t" x="842" y="74" text-anchor="middle">· so sánh</text>
+        <text class="dg-s" x="842" y="90" text-anchor="middle">chặn event loop</text>
+
+        <g class="dg-arw" marker-end="url(#arw)">
+          <line x1="163" y1="69" x2="212" y2="69"></line>
+          <line x1="349" y1="69" x2="398" y2="69"></line>
+          <line x1="535" y1="69" x2="584" y2="69"></line>
+          <line x1="721" y1="69" x2="770" y2="69"></line>
+        </g>
+        <text class="dg-lbl" x="187" y="62" text-anchor="middle">đọc</text>
+        <text class="dg-lbl" x="373" y="62" text-anchor="middle">sườn lên</text>
+        <text class="dg-lbl" x="559" y="62" text-anchor="middle">emit</text>
+        <text class="dg-lbl" x="745" y="62" text-anchor="middle">gọi lại</text>
+
+        <path class="dg-arw" marker-end="url(#arw)"
+              d="M842 102 L842 130 L98 130 L98 109"></path>
+        <text class="dg-ret" x="470" y="147" text-anchor="middle">ghi một thanh ghi kết quả chung D1040, chỉ khi đã đủ mọi đối tượng của model</text>
+
+        <line class="dg-div" x1="33" y1="176" x2="907" y2="176"></line>
+
+        <!-- ================= LANE B : ECOS_BASIC ================= -->
+        <text class="dg-eyebrow dg-eyebrow-basic" x="33" y="204">ECOS_BASIC</text>
+
+        <rect class="dg-box dg-box-basic" x="33"  y="220" width="130" height="66" rx="2"></rect>
+        <text class="dg-t" x="98"  y="247" text-anchor="middle">PLC</text>
+        <text class="dg-s" x="98"  y="264" text-anchor="middle">M1300 … M1356</text>
+
+        <rect class="dg-box dg-box-basic" x="219" y="220" width="130" height="66" rx="2"></rect>
+        <text class="dg-t" x="284" y="243" text-anchor="middle">Vòng lặp chính</text>
+        <text class="dg-t" x="284" y="258" text-anchor="middle">gevent</text>
+        <text class="dg-s" x="284" y="274" text-anchor="middle">đọc gộp theo dải</text>
+
+        <rect class="dg-box dg-box-basic" x="405" y="220" width="130" height="66" rx="2"></rect>
+        <text class="dg-t" x="470" y="243" text-anchor="middle">Khoá từng</text>
+        <text class="dg-t" x="470" y="258" text-anchor="middle">capture</text>
+        <text class="dg-s" x="470" y="274" text-anchor="middle">rồi mới ACK gộp</text>
+
+        <rect class="dg-box dg-box-basic" x="591" y="220" width="130" height="66" rx="2"></rect>
+        <text class="dg-t" x="656" y="243" text-anchor="middle">ThreadPool</text>
+        <text class="dg-t" x="656" y="258" text-anchor="middle">N luồng song song</text>
+        <text class="dg-s" x="656" y="274" text-anchor="middle">semaphore · process pool</text>
+
+        <rect class="dg-box dg-box-basic" x="777" y="220" width="130" height="66" rx="2"></rect>
+        <text class="dg-t" x="842" y="243" text-anchor="middle">write_queue</text>
+        <text class="dg-t" x="842" y="258" text-anchor="middle">gộp lệnh ghi</text>
+        <text class="dg-s" x="842" y="274" text-anchor="middle">về đúng luồng gevent</text>
+
+        <g class="dg-arw" marker-end="url(#arw)">
+          <line x1="163" y1="253" x2="212" y2="253"></line>
+          <line x1="349" y1="253" x2="398" y2="253"></line>
+          <line x1="535" y1="253" x2="584" y2="253"></line>
+          <line x1="721" y1="253" x2="770" y2="253"></line>
+        </g>
+        <text class="dg-lbl" x="187" y="246" text-anchor="middle">đọc gộp</text>
+        <text class="dg-lbl" x="373" y="246" text-anchor="middle">thử khoá</text>
+        <text class="dg-lbl" x="559" y="246" text-anchor="middle">dispatch</text>
+        <text class="dg-lbl" x="745" y="246" text-anchor="middle">xếp hàng</text>
+
+        <path class="dg-arw" marker-end="url(#arw)"
+              d="M842 286 L842 314 L98 314 L98 293"></path>
+        <text class="dg-ret" x="470" y="331" text-anchor="middle">ghi result và status riêng cho từng capture, ngay khi capture đó xong</text>
+      </svg>
+    </div>
+    <figcaption>
+      Cùng một tín hiệu trigger, hai đường đi. ECOS_AI phải vòng qua trình duyệt mới
+      bắt đầu chụp, và chỉ trả về PLC đúng một giá trị khi cả chu kỳ hoàn tất.
+      ECOS_BASIC giữ toàn bộ đường đi trong tiến trình server, tách phần chạm socket
+      PLC về luồng chính và trả kết quả từng capture độc lập.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ============================ TRIGGER ĐỒNG THỜI ============================ -->
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Trọng tâm</p>
+    <h2>Nhiều trigger bắn cùng lúc được giải quyết thế nào</h2>
+  </div>
+
+  <div class="duo">
+    <div class="lane lane--ai">
+      <p class="lane-name">ECOS_AI &middot; chống trùng bằng trạng thái</p>
+      <p>
+        Không có khoá nào trong toàn bộ lớp điều khiển. Việc chống trùng dựa vào ba
+        chốt chặn xếp chồng, kiểm tra trên dict toàn cục.
+      </p>
+      <ul>
+        <li><b>Phát hiện sườn lên.</b> <code>_has_changed(tag, value)</code> so giá trị mới với <code>_PLC_CACHE</code>; chỉ giá trị đổi từ 0 sang 1 mới kích hoạt.</li>
+        <li><b>Chốt đã có kết quả.</b> Nếu <code>_OBJECCT_TRACKING</code> đã có kết quả cho đối tượng đó, trigger bị bỏ và ghi log &ldquo;Duplicated PLC trigger&rdquo;.</li>
+        <li><b>Chốt thứ tự.</b> Trigger QR trả về ngay nếu khay chưa nhận dạng xong. Do chốt này nằm <em>trước</em> <code>_has_changed</code>, cache không bị cập nhật, nên trigger sẽ được nhận lại ở vòng poll sau &mdash; tức là cơ chế thử lại ngầm, đổi lấy trễ thêm một chu kỳ.</li>
+        <li><b>ACK ngay.</b> Ghi 0 ngược lại thanh ghi trigger rồi ép <code>_PLC_CACHE[tag] = 0</code>.</li>
+        <li><b>Gộp kết quả.</b> <code>check_and_compare_if_ready()</code> chỉ so sánh và ghi <code>D1040</code> khi đủ số đối tượng mà model đang chọn yêu cầu, sau đó reset toàn bộ.</li>
+      </ul>
+      <p>
+        Kết quả thực tế: <em>không có xử lý song song</em>. <code>trigger_capture</code>
+        và <code>process_image_with_camera</code> là hàm đồng bộ được gọi từ trong
+        coroutine, nên chúng chặn event loop suốt thời gian chụp và suy luận.
+        Hai trigger đến cùng lúc buộc phải nối đuôi nhau.
+      </p>
+    </div>
+
+    <div class="lane lane--basic">
+      <p class="lane-name">ECOS_BASIC &middot; khoá, ACK có điều kiện, dispatch</p>
+      <p>
+        <code>_poll_multi_triggers()</code> xử lý cả lượt quét như một giao dịch:
+        đọc hết, khoá hết, ACK hết, rồi mới dispatch.
+      </p>
+      <ul>
+        <li><b>Đọc một lần cho tất cả trigger.</b> Gom theo tiền tố thiết bị, sắp xếp theo số thanh ghi, bắc cầu qua khoảng trống nhỏ hơn 16 &rarr; dải <code>M1300</code>&ndash;<code>M1356</code> gộp từ 6 lệnh xuống 1.</li>
+        <li><b>Khoá trước, ACK sau.</b> Mỗi capture có <code>threading.Lock</code> riêng, lấy bằng <code>acquire(blocking=False)</code>. Địa chỉ trigger chỉ được ACK khi có ít nhất một capture lấy được khoá. Nếu tất cả đang bận, thanh ghi vẫn giữ giá trị 1 và lượt poll sau sẽ bắt lại.</li>
+        <li><b>Dispatch song song thật.</b> Mỗi capture sẵn sàng được đẩy vào <code>ThreadPoolExecutor</code> có số worker bằng số capture cấu hình.</li>
+        <li><b>Chặn tranh chấp CPU.</b> Semaphore <code>detection_concurrency_limit</code> mặc định 4 cho các model chạy in-thread; các model nặng CPU được khai trong <code>worker_routed_models</code> đi qua <code>ProcessPoolExecutor</code> riêng để có GIL riêng.</li>
+        <li><b>Mọi lệnh ghi quay về luồng chính.</b> Socket đã bị gevent vá nên luồng worker không được chạm vào. Chúng đẩy <code>partial(self._write_tag, …)</code> vào <code>write_queue</code>; vòng lặp chính gọi <code>_drain_write_queue()</code> nhiều lần trong một lượt và gộp các lệnh ghi liền kề.</li>
+      </ul>
+      <p>
+        Ràng buộc dữ liệu chéo giữa các capture không còn giải bằng thứ tự trigger
+        mà bằng <code>DetectionCache</code>: một capture ghi <code>cache</code> vào kết
+        quả, capture khác đọc snapshot và tự chờ giá trị đủ mới.
+      </p>
+    </div>
+  </div>
+
+  <div class="scen">
+    <article>
+      <div class="q">Hai trigger khác capture bắn trong cùng một lượt quét</div>
+      <div class="a"><span class="tag tag--ai">ECOS_AI</span>Cả hai callback chạy tuần tự trong vòng poll, mỗi cái emit một sự kiện lên UI. Việc chụp và nhận dạng vẫn nối đuôi vì event loop bị chặn.</div>
+      <div class="a"><span class="tag tag--basic">ECOS_BASIC</span>Cả hai lấy được khoá riêng, ACK gộp trong một lệnh ghi, rồi chạy song song trên hai luồng.</div>
+    </article>
+    <article>
+      <div class="q">Trigger lặp lại khi capture trước chưa xong</div>
+      <div class="a"><span class="tag tag--ai">ECOS_AI</span>Bị chặn vì <code>_OBJECCT_TRACKING</code> đã có kết quả cho đối tượng đó, hoặc vì cache chưa đổi giá trị.</div>
+      <div class="a"><span class="tag tag--basic">ECOS_BASIC</span>Không lấy được khoá nên không ACK. Thanh ghi giữ nguyên 1 và được xử lý ở lượt quét kế tiếp.</div>
+    </article>
+    <article>
+      <div class="q">Nhiều capture dùng chung một địa chỉ trigger</div>
+      <div class="a"><span class="tag tag--ai">ECOS_AI</span>Không có khái niệm này &mdash; một tag gắn cứng với một đối tượng.</div>
+      <div class="a"><span class="tag tag--basic">ECOS_BASIC</span>Địa chỉ được đọc một lần, tất cả capture gắn với nó cùng lấy khoá, ACK chỉ ghi một lần cho cả nhóm.</div>
+    </article>
+    <article>
+      <div class="q">Kết quả trả về PLC khi nhiều capture chạy song song</div>
+      <div class="a"><span class="tag tag--ai">ECOS_AI</span>Phải chờ đủ mọi đối tượng rồi mới so sánh và ghi một giá trị vào <code>D1040</code>.</div>
+      <div class="a"><span class="tag tag--basic">ECOS_BASIC</span>Mỗi capture ghi <code>result_address</code> và <code>status_address</code> của riêng nó ngay khi xong; <code>FeatureTracker</code> tổng hợp riêng cho UI và cho bản ghi.</div>
+    </article>
+    <article>
+      <div class="q">Một capture chưa bao giờ về</div>
+      <div class="a"><span class="tag tag--ai">ECOS_AI</span>Chu kỳ treo cho đến khi PLC đổi model &mdash; <code>reset_detection_results()</code> chỉ chạy khi so sánh xong hoặc khi <code>D1060</code> đổi.</div>
+      <div class="a"><span class="tag tag--basic">ECOS_BASIC</span><code>FeatureTracker</code> hẹn giờ <code>capture_timeout_seconds</code> và đóng feature khi hết giờ; PLC còn hai thanh ghi reset riêng.</div>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ RỦI RO ============================ -->
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Điểm còn hở</p>
+    <h2>Những chỗ vẫn nên để mắt</h2>
+  </div>
+
+  <p>
+    Bản viết lại xử lý được bài toán chính, nhưng không phải mọi cạnh đều kín.
+    Năm điểm dưới đây đọc được thẳng từ mã nguồn hiện tại.
+  </p>
+
+  <div class="risks">
+    <div class="risk">
+      <h3>ECOS_AI không khoá trạng thái dùng chung</h3>
+      <p>
+        <code>_OBJECCT_TRACKING</code> và <code>_PENDING_DETECT_INFO</code> bị đọc ghi
+        từ nhiều coroutine mà không có khoá. Giữa các điểm <code>await</code> vẫn có khe
+        để hai luồng xử lý xen vào nhau và cùng thấy &ldquo;đã đủ kết quả&rdquo;.
+      </p>
+      <p class="where">services/plc/plc_controller.py</p>
+    </div>
+
+    <div class="risk">
+      <h3>Chế độ single ACK trước khi lấy khoá</h3>
+      <p>
+        <code>_poll_single_trigger()</code> ghi 0 ngược lại thanh ghi trigger rồi mới thử
+        lấy <code>_single_lock</code>. Trigger đến khi chu kỳ trước chưa xong bị tiêu thụ
+        và bỏ hẳn. Chế độ multi làm ngược lại và vì thế an toàn hơn.
+      </p>
+      <p class="where">app/base_app.py</p>
+    </div>
+
+    <div class="risk">
+      <h3>ACK chung địa chỉ có thể nuốt nhịp</h3>
+      <p>
+        Khi nhiều capture chia nhau một <code>trigger_address</code> mà chỉ một phần lấy
+        được khoá, địa chỉ vẫn bị ACK. Các capture đang bận bỏ lỡ đúng nhịp đó.
+      </p>
+      <p class="where">app/base_app.py &middot; _poll_multi_triggers</p>
+    </div>
+
+    <div class="risk">
+      <h3>Ghi PLC không còn kiểm chứng</h3>
+      <p>
+        <code>PLCApp._write_tag</code> gọi thẳng <code>batchwrite</code>, không đọc lại để
+        đối chiếu và không thử lại như <code>PLCService.write_data</code> của ECOS_AI.
+        Một lệnh ghi rơi sẽ im lặng.
+      </p>
+      <p class="where">app/plc_app.py</p>
+    </div>
+
+    <div class="risk">
+      <h3>Vòng lặp cũ vẫn nằm lại</h3>
+      <p>
+        <code>PLCService.run()</code>, <code>register_callback()</code> và
+        <code>write_tag_and_monitor()</code> được kế thừa nguyên từ ECOS_AI nhưng không
+        còn đường nào gọi tới trong nhánh <code>PLCApp</code>. Dễ gây hiểu nhầm khi đọc mã.
+      </p>
+      <p class="where">services/plc/plc_service.py</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ KIỂM CHỨNG ============================ -->
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Kiểm chứng</p>
+    <h2>Bộ giả lập PLC bắn trigger đồng thời</h2>
+  </div>
+
+  <p>
+    ECOS_AI không có bộ giả lập PLC nào; muốn thử là phải có phần cứng thật.
+    ECOS_BASIC dựng một server SLMP 3E binary chạy ngay trong tiến trình test, để
+    <code>PLCService</code> kết nối vào y hệt như nối PLC thật. Trên nền đó là các kịch
+    bản riêng cho từng dự án.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Kịch bản</th>
+          <th scope="col">Nội dung</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row" class="mono">scenario</th>
+          <td>Bốn luồng khởi động cùng lúc: C3 trên camera riêng, nhóm C2 nối tiếp trên camera dùng chung, C1 và C4 độc lập &mdash; mô phỏng đúng bố trí dây chuyền thật.</td>
+        </tr>
+        <tr>
+          <th scope="row" class="mono">scenario &lt;seed&gt;</th>
+          <td>Hai luồng có độ trễ ngẫu nhiên nhưng tái lập được từ seed, để cùng một seed cho ra cùng một chuỗi thời điểm bất kể thứ tự luồng xen kẽ.</td>
+        </tr>
+        <tr>
+          <th scope="row" class="mono">random_scenario &lt;n&gt;</th>
+          <td>N chu kỳ ngẫu nhiên độc lập: đảo thứ tự C3, chọn ngẫu nhiên bắn cả cụm 4 trigger gần như cùng lúc hay bắt tay từng cái, và khoảng 15% chu kỳ chèn lệnh reset giữa chừng.</td>
+        </tr>
+        <tr>
+          <th scope="row" class="mono">trigger all</th>
+          <td>Bắn toàn bộ trigger cùng một lúc &mdash; trường hợp căng nhất cho khoá từng capture, cho <code>DetectionCache</code> và cho phần ghi CSV.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Đáng chú ý là phần chú thích trong <code>nitto_white_core_plc_emulator.py</code> ghi
+    rõ: phần cứng thật trên dây chuyền này thực tế vẫn bắt tay từng trigger một, nhưng
+    thiết kế của <code>base_app.py</code> cho phép dispatch đồng thời thật, nên kịch bản
+    cố tình bắn đồng thời để ép đúng trường hợp đó ra.
+  </p>
+</section>
+
+<footer>
+  <span>So sánh dựa trên mã nguồn tại thời điểm 11/09/2026</span>
+  <span>ECOS_AI · src/detector/server</span>
+  <span>ECOS_BASIC · server</span>
+</footer>
+
+</div>
+</body>
+</html>

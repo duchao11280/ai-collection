@@ -1,0 +1,7 @@
+shift:
+  N:
+    start: 8
+    end: 20
+  D:
+    start: 20
+    end: 8
